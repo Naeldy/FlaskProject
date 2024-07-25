@@ -15,4 +15,6 @@ class EmployeeModel(db.Model):
         self.cpf = cpf
         self.name = name
         self.position = position
-        
+    
+    def __repr__(self):
+        return f"{self.id}:{self.name}-{self.position}"
