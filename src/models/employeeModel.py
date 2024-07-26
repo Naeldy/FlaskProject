@@ -2,19 +2,17 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class EmployeeModel(db.Model):
-    
-    __tablename__ = 'employee'
-    
-    id = db.Column(db.Integer, primary_key= True)
-    cpf = db.Column(db.String(11), unique = True)
-    name = db.Column(db.String(100))
-    position = db.Column(db.String(20))
-    
-    def __init__(self, cpf, name, position):
-        self.cpf = cpf
-        self.name = name
-        self.position = position
-    
-    def __repr__(self):
-        return f"{self.id}:{self.name}-{self.position}"
+class Employee(db.Model):
+    __tablename__ = 'employees'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.String(100), nullable=False)
+    salary = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'position': self.position,
+            'salary': self.salary
+        }

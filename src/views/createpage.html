@@ -1,6 +1,55 @@
-<form action='' method="POST">
-    <p>CPF <input type="integer" name="cpf" /></p>
-    <p>Nome <input type="text" name="name" /></p>
-    <p>Cargo <input type="text" name="position" /></p>
-    <p><input type="submit" value="Submit" /></p>
-  </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Page</title>
+</head>
+<body>
+    <h1>Welcome to the Create Page</h1>
+    <form id="create-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="position">Position:</label>
+        <input type="text" id="position" name="position" required><br><br>
+        
+        <label for="salary">Salary:</label>
+        <input type="number" id="salary" name="salary" required><br><br>
+        
+        <input type="submit" value="Submit">
+    </form>
+    <a href="/">Go to Main Page</a>
+
+    <script>
+        document.getElementById('create-form').addEventListener('submit', function(event) {
+            event.preventDefault();  // Impede o envio padrão do formulário
+
+            const name = document.getElementById('name').value;
+            const position = document.getElementById('position').value;
+            const salary = document.getElementById('salary').value;
+
+            fetch('/employees', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    position: position,
+                    salary: salary
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Employee created successfully!');
+                document.getElementById('create-form').reset();  // Limpa o formulário
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('There was an error creating the employee.');
+            });
+        });
+    </script>
+</body>
+</html>

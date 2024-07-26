@@ -1,63 +1,40 @@
-from flask import Blueprint, render_template, request, redirect, abort
-from models.employeeModel import EmployeeModel, db
+from flask import Blueprint, render_template, request, jsonify
+from models.employeeModel import db, Employee
 
-employee_blueprint = Blueprint('employee', __name__)
+employee_blueprint = Blueprint('employee_blueprint', __name__)
 
 @employee_blueprint.route('/')
-def index():
+def main_page():
     return render_template('mainpage.html')
 
-@employee_blueprint.route('/create', methods=["GET", "POST"])
-def create():
-    
-    if request.method == 'GET':
-        return render_template('createpage.html')
-    
-    if request.method == 'POST':
-        cpf = request.form['cpf']
-        name = request.form['name']
-        position = request.form['position']
-        employee = EmployeeModel(cpf = cpf, name = name, position=position)
-        
-        db.session.add(employee)
-        db.session.commit()
-        return redirect('/data')
-    
-@employee_blueprint.route('/data')
-def DataView():
-    employee = EmployeeModel.query.all()
-    return render_template('datalist.html',employee=employee)
+@employee_blueprint.route('/create')
+def create_page():
+    return render_template('createpage.html')
 
-@employee_blueprint.route('/data/<int:id>')
-def findEmployee(id):
-    employee = EmployeeModel.query.filter_by(id=id).first()
-    if employee:
-        return render_template("data.html", employee=employee)
-    return f"Empregado com id={id} não existe"
-    
-@employee_blueprint.route('/data/<int:id>/update', methods=["GET", "POST"])
-def update(id):
-    employee = EmployeeModel.query.get(id)
-    if not employee:
-        return "Empregado com id={id} não existe"
-    
-    if request.method == 'POST':
-        employee.cpf = request.form["cpf"]
-        employee.name = request.form["name"]
-        employee.position = request.form["position"]
-        db.session.commit()
-        return redirect(f"/data/{id}")
-    
-    return render_template("update.html", employee=employee)
+@employee_blueprint.route('/employees', methods=['POST'])
+def create_employee():
+    # Verifica se o Content-Type da requisição é 'application/json'
+    if request.content_type != 'application/json':
+        return jsonify({'error': 'Content-Type must be application/json'}), 415  # Unsupported Media Type
 
-@employee_blueprint.route('/data/<int:id>/delete', methods=['GET', 'POST'])
-def delete(id):
-    employee = EmployeeModel.query.filter_by(id=id).first()
-    if request.method == 'POST':
-        if employee:
-            db.session.delete(employee)
-            db.session.commit()
-            
-            return redirect('/data')
-        abort(404)
-    return render_template('delete.html', employee=employee)
+    # Tenta obter os dados JSON da requisição
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No JSON data received'}), 400  # Bad Request
+
+    # Cria um novo funcionário com os dados recebidos
+    new_employee = Employee(name=data['name'], position=data['position'], salary=data['salary'])
+    db.session.add(new_employee)
+    db.session.commit()
+
+    # Retorna o novo funcionário criado como resposta JSON
+    return jsonify(new_employee.to_dict()), 201
+
+@employee_blueprint.route('/employees', methods=['GET'])
+def get_employees():
+    employees = Employee.query.all()
+    return jsonify([employee.to_dict() for employee in employees])
+
+@employee_blueprint.route('/employees/list')
+def employees_page():
+    return render_template('employees.html')
